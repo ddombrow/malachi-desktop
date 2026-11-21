@@ -1,6 +1,13 @@
-# malachi-desktop
+<p align="center">
+  <img src="build/appicon.svg" alt="malachi logo" width="128">
+</p>
 
-A desktop frontend for [malachi](https://github.com/ddombrow/malachi), built with Wails 3 (Go + Svelte 5).
+<h1 align="center">malachi-desktop</h1>
+
+<p align="center">
+  A desktop app for the <a href="https://github.com/ddombrow/malachi">malachi</a> coding agent, with malachi built in.<br>
+  Built with Wails 3 (Go + Svelte 5).
+</p>
 
 malachi is built in: the app imports it as a Go module (pinned in `go.mod`)
 and runs malachi's own RPC server in-process, over in-memory pipes, for the
