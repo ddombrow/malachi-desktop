@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=malachi
+GenericName=Coding agent
+Comment=Desktop frontend for the malachi coding agent
+Exec=malachi-desktop
+Icon=io.github.ddombrow.malachi-desktop
+StartupWMClass=io.github.ddombrow.malachi-desktop
+Categories=Development;
+Keywords=ai;agent;llm;coding;
+Terminal=false
+StartupNotify=true

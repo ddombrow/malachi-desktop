@@ -1,0 +1,18 @@
+.task
+.wails
+bin
+frontend/dist
+frontend/node_modules
+
+# Regenerated from Wails templates by `wails3 task common:update:build-assets`
+# but unused: packaging reads build/linux/nfpm/malachi.yaml and
+# build/linux/io.github.ddombrow.malachi-desktop.desktop instead.
+build/linux/desktop
+build/linux/nfpm/nfpm.yaml
+build/linux/malachi-desktop.desktop
+
+# AppImage build scratch (linux:create:appimage)
+build/linux/appimage/build
+build/linux/appimage/malachi-desktop
+build/linux/appimage/*.png
+build/linux/appimage/*.AppImage

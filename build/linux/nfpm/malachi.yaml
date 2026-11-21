@@ -1,0 +1,57 @@
+# Package definition for .deb, .rpm and Arch packages (wails3 task
+# linux:package, or linux:create:deb / :rpm / :aur).
+#
+# This replaces Wails' generated nfpm.yaml, which `update:build-assets`
+# rewrites from its template: names here match the app id the window
+# reports on Wayland (io.github.ddombrow.malachi-desktop), so docks find the
+# icon, and the dependencies match the GTK3 + WebKitGTK 4.1 build.
+#
+# VERSION comes from info.version in build/config.yml (see Taskfile.yml).
+
+name: "malachi-desktop"
+arch: ${GOARCH}
+platform: "linux"
+version: ${VERSION}
+section: "devel"
+priority: "optional"
+maintainer: "Daniel Dombrowsky"
+description: |
+  Desktop app for the malachi coding agent.
+  Chats and project sessions with malachi built in.
+vendor: "Daniel Dombrowsky"
+homepage: "https://github.com/ddombrow/malachi-desktop"
+license: "MIT"
+release: "1"
+
+contents:
+  - src: "./bin/malachi-desktop"
+    dst: "/usr/bin/malachi-desktop"
+  - src: "./build/linux/io.github.ddombrow.malachi-desktop.desktop"
+    dst: "/usr/share/applications/io.github.ddombrow.malachi-desktop.desktop"
+  - src: "./build/appicon.svg"
+    dst: "/usr/share/icons/hicolor/scalable/apps/io.github.ddombrow.malachi-desktop.svg"
+  - src: "./build/linux/icons/512x512.png"
+    dst: "/usr/share/icons/hicolor/512x512/apps/io.github.ddombrow.malachi-desktop.png"
+  - src: "./build/linux/icons/256x256.png"
+    dst: "/usr/share/icons/hicolor/256x256/apps/io.github.ddombrow.malachi-desktop.png"
+  - src: "./LICENSE"
+    dst: "/usr/share/licenses/malachi-desktop/LICENSE"
+
+# GTK3 + WebKitGTK 4.1, as built with -tags gtk3 (EXTRA_TAGS in Taskfile.yml).
+depends:
+  - libgtk-3-0
+  - libwebkit2gtk-4.1-0
+
+overrides:
+  rpm:
+    depends:
+      - gtk3
+      - webkit2gtk4.1
+  archlinux:
+    depends:
+      - gtk3
+      - webkit2gtk-4.1
+
+scripts:
+  postinstall: "./build/linux/nfpm/scripts/refresh-caches.sh"
+  postremove: "./build/linux/nfpm/scripts/refresh-caches.sh"
