@@ -156,6 +156,8 @@ func (m *MalachiService) Open(opts OpenOptions) error {
 		opts.Thinking = saved.Thinking
 	}
 
+	opts.Resume = resumable(opts.Resume)
+
 	// A saved code mode this malachi does not know would make Open fail;
 	// leave it to malachi's default instead.
 	codeMode := saved.CodeMode
@@ -163,13 +165,25 @@ func (m *MalachiService) Open(opts OpenOptions) error {
 		codeMode = ""
 	}
 
+	// With memory on, the session gets malachi-memory, served by this
+	// binary (memory.go). A "memory" server in the user's mcp.json wins.
+	var extra map[string]coding.MCPServerConfig
+	if saved.Memory == "on" {
+		if cfg, err := memoryServerConfig(); err == nil {
+			extra = map[string]coding.MCPServerConfig{memoryServerName: cfg}
+		} else {
+			application.Get().Event.Emit(evStderr, "memory is on but its server could not be set up: "+err.Error())
+		}
+	}
+
 	s, err := coding.Open(coding.Options{
-		Cwd:           cwd,
-		Model:         opts.Model,
-		ThinkingLevel: opts.Thinking,
-		CodeMode:      codeMode,
-		Continue:      opts.Continue && opts.Resume == "",
-		Resume:        opts.Resume,
+		Cwd:             cwd,
+		Model:           opts.Model,
+		ThinkingLevel:   opts.Thinking,
+		CodeMode:        codeMode,
+		Continue:        opts.Continue && opts.Resume == "",
+		Resume:          opts.Resume,
+		ExtraMCPServers: extra,
 	})
 	if err != nil {
 		return err
@@ -238,6 +252,21 @@ func (m *MalachiService) Open(opts OpenOptions) error {
 		}
 	}()
 	return nil
+}
+
+// resumable returns the session file to resume, or "" when there is
+// nothing to resume yet: malachi reports a new session's file path before
+// its first message but creates the file only then, and resuming a path
+// that does not exist fails. Reopening such a session (to apply a setting)
+// then starts a fresh one, which is all there was.
+func resumable(path string) string {
+	if path == "" {
+		return ""
+	}
+	if st, err := os.Stat(path); err != nil || st.IsDir() {
+		return ""
+	}
+	return path
 }
 
 // Close ends the session: closing its input makes the server abort the

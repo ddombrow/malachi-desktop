@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ddombrow/malachi/agent"
 	"github.com/ddombrow/malachi/ai/fake"
@@ -17,6 +18,7 @@ import (
 // in helper mode, which must be handled before tests run.
 func TestMain(m *testing.M) {
 	sandbox.MaybeRunHelper()
+	runMemoryServer() // malachi starts this binary as the memory MCP server
 	os.Exit(m.Run())
 }
 
@@ -71,5 +73,66 @@ func TestOpenInCodeMode(t *testing.T) {
 	defer s.Close()
 	if got := s.CodeMode().Mode; got != "explore" {
 		t.Fatalf("code mode = %q, want explore", got)
+	}
+}
+
+// With memory on, a session gets malachi-memory served by this binary,
+// through malachi's MCP manager and sandbox, and what the agent remembers
+// lands in the app's database.
+func TestMemoryServerInSession(t *testing.T) {
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	cfg, err := memoryServerConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Outside /tmp the sandboxed server could not create its own writable
+	// root; the config must have made it.
+	if st, err := os.Stat(cfg.Writable[0]); err != nil || !st.IsDir() {
+		t.Fatalf("writable root %s not created: %v", cfg.Writable[0], err)
+	}
+	p := fake.New(
+		fake.ToolCalls("Saving.", fake.Call{ID: "m1", Name: "mcp__memory__remember",
+			Args: map[string]any{"text": "prefers tabs over spaces", "topics": []any{"style"}}}),
+		fake.Text("noted"),
+	)
+	s, err := coding.Open(coding.Options{
+		Cwd: t.TempDir(), Home: t.TempDir(), Settings: &coding.Settings{}, Provider: p,
+		NoSession: true, Trust: "no",
+		ExtraMCPServers: map[string]coding.MCPServerConfig{memoryServerName: cfg},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	deadline := time.Now().Add(20 * time.Second)
+	for {
+		var st coding.MCPServerState
+		for _, srv := range s.MCPState().Servers {
+			if srv.Name == memoryServerName {
+				st = srv
+			}
+		}
+		if st.Status == "ready" {
+			break
+		}
+		if st.Status == "failed" || time.Now().After(deadline) {
+			t.Fatalf("memory server: status %q, error %q", st.Status, st.Error)
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	if err := s.Prompt(context.Background(), "remember that"); err != nil {
+		t.Fatal(err)
+	}
+	for _, m := range s.Harness.Messages() {
+		if r, ok := m.(*agent.ToolResultMessage); ok && r.IsError {
+			t.Fatalf("tool error: %s", r.Text())
+		}
+	}
+	items, err := (&MalachiService{}).MemoryList("tabs", "", 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != 1 || items[0].Text != "prefers tabs over spaces" || len(items[0].Topics) != 1 {
+		t.Fatalf("memories = %+v", items)
 	}
 }

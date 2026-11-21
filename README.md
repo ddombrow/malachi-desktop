@@ -28,10 +28,12 @@ main.go                 sandbox helper hook, Wails app + window
 malachiservice.go       runs malachi's RPC server in-process, lists sessions
 settings.go             the app's own model/thinking preferences
 platform.go             macOS login-shell PATH, app data directory
+memory.go               malachi-memory: --memory-mcp server mode, panel API
 frontend/src/App.svelte layout: sidebar, transcript, composer, status bar
 frontend/src/lib/
   session.svelte.ts     client-side session model fed by RPC events
   ToolCard.svelte       one tool call: summary, args, diff, output
+  MemoryPanel.svelte    browse, search, add and forget memories
   markdown.ts           marked + DOMPurify (model output is untrusted)
 ```
 
@@ -89,6 +91,24 @@ longer exist are left out.
   thinking pickers, the sandbox network toggle, the context meter, and
   malachi's stderr log.
 
+## Memory
+
+**🧠 Memory** in the sidebar opens a panel over what malachi remembers between
+sessions: search, filter by topic, add, and forget. Its switch (off by
+default) gives every session [malachi-memory](https://github.com/ddombrow/malachi-memory)'s
+`remember`, `recall`, `forget` and `topics` tools; turning it on or off
+reopens the current session to apply it.
+
+The memory server is this same binary run with `--memory-mcp` (`memory.go`),
+handed to sessions through malachi's `ExtraMCPServers`, so malachi sandboxes
+it like any MCP server: it may write only the database directory. A
+`memory` server in your own `~/.malachi/mcp.json` takes precedence. The
+database lives with the app's other data, in `memory/memory.pebble` under
+`~/.local/share/malachi-desktop` (macOS: `~/Library/Application
+Support/malachi-desktop`); point a CLI malachi-memory's `MEMORY_DB_PATH`
+there to share it. malachi-memory opens it only around each call, so the
+panel, the app's sessions and other servers can use it at once.
+
 ## macOS
 
 The window's title bar is hidden and the page runs under it; the sidebar
@@ -125,4 +145,6 @@ wails3 task common:generate:icons    # Windows .ico, macOS .icns
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Bundles the Inter font under the SIL Open Font License (`frontend/Inter Font License.txt`).
+MIT — see [LICENSE](LICENSE). Bundles the Inter font under the SIL Open Font License (`frontend/Inter Font License.txt`)
+and [malachi-memory](https://github.com/ddombrow/malachi-memory) under the Apache License 2.0
+([licenses/malachi-memory-LICENSE](licenses/malachi-memory-LICENSE)).

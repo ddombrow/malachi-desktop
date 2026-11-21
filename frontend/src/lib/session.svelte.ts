@@ -124,6 +124,7 @@ class Session {
   }
 
   async init() {
+    this.loadMemoryState();
     try {
       const info = await MalachiService.Info();
       this.version = info.version;
@@ -355,6 +356,31 @@ class Session {
     }
   }
 
+  // ---- memory (malachi-memory, served by the app; see memory.go) ----
+
+  memoryEnabled = $state(false);
+  memoryPath = $state("");
+  memoryVersion = $state(0); // bumped when the agent changes memories
+
+  async loadMemoryState() {
+    try {
+      const st = await MalachiService.MemoryState();
+      this.memoryEnabled = st.enabled;
+      this.memoryPath = st.path;
+    } catch {}
+  }
+
+  // Turning memory on or off changes the session's MCP servers, so the
+  // current session is reopened (resumed if saved) to apply it now.
+  async setMemory(on: boolean) {
+    await MalachiService.UpdateSettings({ model: "", thinking: "", codeMode: "", memory: on ? "on" : "off" });
+    this.memoryEnabled = on;
+    if (this.open && !this.running) {
+      const file = this.state?.sessionFile;
+      await this.openProject(this.cwd, file ? { resume: file } : {});
+    }
+  }
+
   async close() {
     await MalachiService.Close();
     this.open = false;
@@ -400,6 +426,7 @@ class Session {
           status: e.isError ? "error" : "done",
           details: e.result?.details,
         };
+        if (/^mcp__memory__(remember|forget)$/.test(e.toolName ?? "")) this.memoryVersion++;
         break;
       case "queue_update":
         this.steering = e.steering ?? [];

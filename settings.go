@@ -16,6 +16,7 @@ type Settings struct {
 	Model    string `json:"model,omitempty"`    // "provider/model"
 	Thinking string `json:"thinking,omitempty"` // thinking level
 	CodeMode string `json:"codeMode,omitempty"` // off, on or explore
+	Memory   string `json:"memory,omitempty"`   // "on" gives sessions malachi-memory; default off
 }
 
 var settingsMu sync.Mutex
@@ -69,6 +70,9 @@ func (m *MalachiService) UpdateSettings(patch Settings) (Settings, error) {
 	}
 	if patch.CodeMode != "" {
 		st.CodeMode = patch.CodeMode
+	}
+	if patch.Memory != "" {
+		st.Memory = patch.Memory
 	}
 	p, err := settingsPath()
 	if err != nil {

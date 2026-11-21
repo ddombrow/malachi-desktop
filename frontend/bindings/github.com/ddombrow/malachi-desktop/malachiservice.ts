@@ -54,6 +54,42 @@ export function ListSessions(cwd: string): $CancellablePromise<$models.SessionIn
 }
 
 /**
+ * MemoryForget deletes a memory.
+ */
+export function MemoryForget(id: number): $CancellablePromise<void> {
+    return $Call.ByID(892582466, id);
+}
+
+/**
+ * MemoryList returns memories matching query (BM25 search) or about topic,
+ * else the most recent, up to limit.
+ */
+export function MemoryList(query: string, topic: string, limit: number): $CancellablePromise<$models.MemoryItem[] | null> {
+    return $Call.ByID(2962899531, query, topic, limit);
+}
+
+/**
+ * MemoryRemember stores a memory the user typed into the panel.
+ */
+export function MemoryRemember(text: string, topics: string[] | null): $CancellablePromise<number> {
+    return $Call.ByID(409767308, text, topics);
+}
+
+/**
+ * MemoryState reports whether memory is on and where the database is.
+ */
+export function MemoryState(): $CancellablePromise<$models.MemoryState> {
+    return $Call.ByID(3605686740);
+}
+
+/**
+ * MemoryTopics lists every topic with its count.
+ */
+export function MemoryTopics(): $CancellablePromise<$models.TopicCount[] | null> {
+    return $Call.ByID(130583);
+}
+
+/**
  * Open stops any running session and starts one in opts.Cwd.
  */
 export function Open(opts: $models.OpenOptions): $CancellablePromise<void> {

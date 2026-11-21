@@ -4,6 +4,7 @@
   import { session, textOf, type Message, type Block } from "./lib/session.svelte";
   import { renderMarkdown } from "./lib/markdown";
   import ToolCard from "./lib/ToolCard.svelte";
+  import MemoryPanel from "./lib/MemoryPanel.svelte";
   import { MalachiService } from "../bindings/github.com/ddombrow/malachi-desktop";
 
   const s = session;
@@ -15,6 +16,7 @@
   let unseen = $state(false); // output arrived while scrolled up
   let jumping = false; // a smooth scroll to the bottom is under way
   let showLog = $state(false);
+  let showMemory = $state(false);
 
   onMount(async () => {
     await s.init();
@@ -228,6 +230,12 @@
         <span class="place-icon">💬</span>
         <span class="place-name">Chat</span>
       </button>
+      <button class="place sub" class:open={showMemory} onclick={() => (showMemory = !showMemory)}
+        title="What malachi remembers between sessions">
+        <span class="place-icon">🧠</span>
+        <span class="place-name">Memory</span>
+        <span class="badge" class:on={s.memoryEnabled}>{s.memoryEnabled ? "on" : "off"}</span>
+      </button>
 
       <div class="section">
         <span>Projects</span>
@@ -422,6 +430,9 @@
         {/if}
         <button class="pill" onclick={() => (showLog = !showLog)} title="malachi stderr">log</button>
       </footer>
+      {#if showMemory}
+        <MemoryPanel onclose={() => (showMemory = false)} />
+      {/if}
       {#if showLog}
         <pre class="log floating">{s.stderr.join("\n") || "(nothing on stderr)"}</pre>
       {/if}

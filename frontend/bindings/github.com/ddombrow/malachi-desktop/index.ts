@@ -8,8 +8,11 @@ export {
 
 export type {
     Info,
+    MemoryItem,
+    MemoryState,
     OpenOptions,
     RecentProject,
     SessionInfo,
-    Settings
+    Settings,
+    TopicCount
 } from "./models.js";

@@ -27,6 +27,9 @@ func main() {
 	// this binary in helper mode, which must confine itself before anything
 	// else runs, exactly as in malachi's own main.
 	sandbox.MaybeRunHelper()
+	// Run with --memory-mcp, this binary is the sessions' malachi-memory
+	// server (memory.go), not the app.
+	runMemoryServer()
 	if err := sandbox.ProtectProcess(); err != nil {
 		fmt.Fprintln(os.Stderr, "malachi-desktop: cannot protect process environment from child commands:", err)
 		os.Exit(1)

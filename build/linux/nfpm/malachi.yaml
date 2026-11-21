@@ -36,6 +36,8 @@ contents:
     dst: "/usr/share/icons/hicolor/256x256/apps/io.github.ddombrow.malachi-desktop.png"
   - src: "./LICENSE"
     dst: "/usr/share/licenses/malachi-desktop/LICENSE"
+  - src: "./licenses/malachi-memory-LICENSE"
+    dst: "/usr/share/licenses/malachi-desktop/malachi-memory-LICENSE"
 
 # GTK3 + WebKitGTK 4.1, as built with -tags gtk3 (EXTRA_TAGS in Taskfile.yml).
 depends:

@@ -16,12 +16,25 @@
 
   let open = $state(false);
 
+  // MCP tools arrive as mcp__<server>__<tool>; show malachi-memory's by
+  // their own names.
+  const memoryTool = $derived(name.startsWith("mcp__memory__") ? name.slice("mcp__memory__".length) : "");
+  const label = $derived(memoryTool || name);
+
   const status = $derived(
     result ? (result.isError ? "error" : "done") : (run?.status ?? "pending"),
   );
 
   const summary = $derived.by(() => {
     const a = args ?? {};
+    if (memoryTool) {
+      switch (memoryTool) {
+        case "remember": return a.text + (a.topics?.length ? `  [${a.topics.join(", ")}]` : "");
+        case "recall": return a.query ? `"${a.query}"` : a.topic ? `about ${a.topic}` : "recent";
+        case "forget": return `#${a.id}`;
+        case "topics": return a.related_to ? `related to ${a.related_to}` : "all";
+      }
+    }
     switch (name) {
       case "bash": return a.description ? `${a.description} — ${a.command}` : a.command;
       case "read": return a.path + (a.offset ? `:${a.offset}` : "");
@@ -62,8 +75,8 @@
 
 <div class="tool {status}">
   <button class="head" onclick={() => (open = !open)}>
-    <span class="icon">{icons[name] ?? "🔧"}</span>
-    <span class="name">{name}</span>
+    <span class="icon">{memoryTool ? "🧠" : (icons[name] ?? "🔧")}</span>
+    <span class="name">{label}</span>
     <span class="summary">{summary}</span>
     <span class="state">
       {#if status === "running" || status === "pending"}<span class="spinner"></span>

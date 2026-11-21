@@ -28,6 +28,33 @@ export interface Info {
 }
 
 /**
+ * MemoryItem is one memory as the panel shows it.
+ */
+export interface MemoryItem {
+    "id": number;
+    "text": string;
+    "topics": string[] | null;
+
+    /**
+     * Unix ms
+     */
+    "created": number;
+}
+
+/**
+ * MemoryState is what the panel shows in its header.
+ */
+export interface MemoryState {
+    "enabled": boolean;
+    "path": string;
+
+    /**
+     * the database has been created
+     */
+    "exists": boolean;
+}
+
+/**
  * OpenOptions choose how a session starts.
  */
 export interface OpenOptions {
@@ -94,4 +121,17 @@ export interface Settings {
      * off, on or explore
      */
     "codeMode"?: string;
+
+    /**
+     * "on" gives sessions malachi-memory; default off
+     */
+    "memory"?: string;
+}
+
+/**
+ * TopicCount is a topic and how many memories are about it.
+ */
+export interface TopicCount {
+    "name": string;
+    "count": string;
 }
