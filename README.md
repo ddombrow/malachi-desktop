@@ -61,6 +61,14 @@ are defined by `build/linux/nfpm/malachi.yaml` (Wails' generated `nfpm.yaml`
 is unused) and install the same app id, desktop file and icons as
 `install:desktop`, with the version from `build/config.yml`.
 
+On macOS (13 or later, with the Xcode command line tools), install
+`wails3` without `-tags gtk3`, then `wails3 task darwin:package` builds an
+ad-hoc signed `bin/malachi-desktop.app`; `darwin:package:dmg` wraps it in a
+`.dmg` and `darwin:package:universal` builds for both Apple Silicon and
+Intel. An ad-hoc signed app runs on the Mac that built it. Before sharing
+it, sign and notarize it with a Developer ID (`wails3 setup`, then
+`darwin:sign:notarize`), or Gatekeeper will block it on other Macs.
+
 On Linux the build uses GTK3 + webkit2gtk-4.1 (`EXTRA_TAGS` defaults to
 `gtk3` in `Taskfile.yml`); install `webkitgtk-6.0` and pass
 `EXTRA_TAGS=nogtk3` to use Wails' default GTK4 backend instead.

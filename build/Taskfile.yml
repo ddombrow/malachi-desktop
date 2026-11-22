@@ -234,6 +234,9 @@ tasks:
     dir: build
     cmds:
       - wails3 update build-assets -name "{{.APP_NAME}}" -binaryname "{{.APP_NAME}}" -config config.yml -dir .
+      # Wails writes macOS 12 as the minimum, but Go 1.25+ needs macOS 13
+      # (see the deployment target in darwin/Taskfile.yml).
+      - sed -i.bak 's#<string>12.0.0</string>#<string>13.0.0</string>#' darwin/Info.plist darwin/Info.dev.plist && rm -f darwin/*.bak
 
   build:server:
     summary: Builds the application in server mode (no GUI, HTTP server only)
