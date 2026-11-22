@@ -31,7 +31,10 @@ export interface Info {
  * MemoryItem is one memory as the panel shows it.
  */
 export interface MemoryItem {
-    "id": number;
+    /**
+     * 26-character ULID
+     */
+    "id": string;
     "text": string;
     "topics": string[] | null;
 

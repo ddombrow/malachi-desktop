@@ -25,8 +25,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ddombrow/malachi v0.9.2 h1:5cnV1MvB82NENL3pgzjTjDcZZ0PKM5k5KHyav2I7P1A=
 github.com/ddombrow/malachi v0.9.2/go.mod h1:7XvDPLRnAE+dJusSMW6eziwQP39gb90YEjykU9xdpLE=
-github.com/ddombrow/malachi-memory v0.3.0 h1:kEuhxoSN8HQehbLQAAMHzah7j+OAdVPv1ySOU1xOil0=
-github.com/ddombrow/malachi-memory v0.3.0/go.mod h1:P7zoCtbixPtDwNgN0XImJchgxuq7PiNGfDFOgs9bTdU=
+github.com/ddombrow/malachi-memory v1.0.0 h1:hbuOk5JKX1bEpKVgxFihVGpAlgfclaaoaPMQ1iXHK0c=
+github.com/ddombrow/malachi-memory v1.0.0/go.mod h1:P7zoCtbixPtDwNgN0XImJchgxuq7PiNGfDFOgs9bTdU=
 github.com/ebitengine/purego v0.11.1 h1:2zpWRSQNVKN4eKsKO9eM1ILDgWfYMY9GwqRmK6XeQ/0=
 github.com/ebitengine/purego v0.11.1/go.mod h1:DCHPP08djqhNSoTfImcnHYQRZmd0qhakvrozqaEYhGQ=
 github.com/getsentry/sentry-go v0.27.0 h1:Pv98CIbtB3LkMWmXi4Joa5OOcwbmnX88sF5qbK3r3Ps=

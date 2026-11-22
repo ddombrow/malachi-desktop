@@ -103,7 +103,7 @@ func memoryServerConfig() (coding.MCPServerConfig, error) {
 
 // MemoryItem is one memory as the panel shows it.
 type MemoryItem struct {
-	ID      int64    `json:"id"`
+	ID      string   `json:"id"` // 26-character ULID
 	Text    string   `json:"text"`
 	Topics  []string `json:"topics"`
 	Created int64    `json:"created"` // Unix ms
@@ -198,7 +198,7 @@ func (m *MalachiService) MemoryList(query, topic string, limit int) ([]MemoryIte
 		if topics == nil {
 			topics = []string{}
 		}
-		out = append(out, MemoryItem{ID: f.ID, Text: f.Text, Topics: topics, Created: f.Created * 1000})
+		out = append(out, MemoryItem{ID: f.ID.String(), Text: f.Text, Topics: topics, Created: f.Created * 1000})
 	}
 	return out, nil
 }
@@ -223,26 +223,33 @@ func (m *MalachiService) MemoryTopics() ([]TopicCount, error) {
 }
 
 // MemoryRemember stores a memory the user typed into the panel.
-func (m *MalachiService) MemoryRemember(text string, topics []string) (int64, error) {
+func (m *MalachiService) MemoryRemember(text string, topics []string) (string, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
-		return 0, errors.New("nothing to remember")
+		return "", errors.New("nothing to remember")
 	}
 	db, err := memoryDB(true)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	var id int64
+	var id memory.ID
 	_, err = db.With(func(s *memory.Store) (string, error) {
 		var err error
 		id, err = s.Remember(text, topics)
 		return "", err
 	})
-	return id, err
+	if err != nil {
+		return "", err
+	}
+	return id.String(), nil
 }
 
 // MemoryForget deletes a memory.
-func (m *MalachiService) MemoryForget(id int64) error {
+func (m *MalachiService) MemoryForget(idText string) error {
+	id, err := memory.ParseID(idText)
+	if err != nil {
+		return err
+	}
 	db, err := memoryDB(false)
 	if err != nil || db == nil {
 		return err

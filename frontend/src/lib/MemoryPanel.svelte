@@ -14,7 +14,7 @@
   let topic = $state("");
   let newText = $state("");
   let newTopics = $state("");
-  let confirmId = $state<number | null>(null);
+  let confirmId = $state<string | null>(null);
   let error = $state("");
   let loading = $state(false);
 
@@ -60,7 +60,7 @@
     }
   }
 
-  async function forget(id: number) {
+  async function forget(id: string) {
     if (confirmId !== id) {
       confirmId = id;
       return;

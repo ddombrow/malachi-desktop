@@ -3,7 +3,7 @@ package main
 import "testing"
 
 func TestUpdateSettingsMerges(t *testing.T) {
-	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	isolateAppData(t)
 	m := &MalachiService{}
 	if st, err := m.GetSettings(); err != nil || st != (Settings{}) {
 		t.Fatalf("fresh settings = %+v, %v", st, err)

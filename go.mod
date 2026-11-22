@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	github.com/ddombrow/malachi v0.9.2
-	github.com/ddombrow/malachi-memory v0.3.0
+	github.com/ddombrow/malachi-memory v1.0.0
 	github.com/wailsapp/wails/v3 v3.1.0
 )
 

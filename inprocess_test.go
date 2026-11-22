@@ -22,6 +22,18 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+// isolateAppData gives the test empty settings and app data directories of
+// its own. Setting XDG_* alone is not enough: on macOS the app ignores it and
+// uses ~/Library/Application Support, so HOME moves too. Only tests that need
+// no real HOME may use it; malachi's sandbox protects whatever HOME names.
+func isolateAppData(t *testing.T) {
+	t.Helper()
+	dir := t.TempDir()
+	t.Setenv("HOME", dir)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(dir, "config"))
+	t.Setenv("XDG_DATA_HOME", filepath.Join(dir, "data"))
+}
+
 // An in-process session runs commands through the sandbox, with this
 // binary as its helper: writes in the project work, while the user's home
 // (private: readable only where allowed) cannot be listed.
@@ -80,7 +92,7 @@ func TestOpenInCodeMode(t *testing.T) {
 // through malachi's MCP manager and sandbox, and what the agent remembers
 // lands in the app's database.
 func TestMemoryServerInSession(t *testing.T) {
-	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	isolateAppData(t)
 	cfg, err := memoryServerConfig()
 	if err != nil {
 		t.Fatal(err)

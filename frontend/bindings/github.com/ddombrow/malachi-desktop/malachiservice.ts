@@ -56,8 +56,8 @@ export function ListSessions(cwd: string): $CancellablePromise<$models.SessionIn
 /**
  * MemoryForget deletes a memory.
  */
-export function MemoryForget(id: number): $CancellablePromise<void> {
-    return $Call.ByID(892582466, id);
+export function MemoryForget(idText: string): $CancellablePromise<void> {
+    return $Call.ByID(892582466, idText);
 }
 
 /**
@@ -71,7 +71,7 @@ export function MemoryList(query: string, topic: string, limit: number): $Cancel
 /**
  * MemoryRemember stores a memory the user typed into the panel.
  */
-export function MemoryRemember(text: string, topics: string[] | null): $CancellablePromise<number> {
+export function MemoryRemember(text: string, topics: string[] | null): $CancellablePromise<string> {
     return $Call.ByID(409767308, text, topics);
 }
 
