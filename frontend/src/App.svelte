@@ -5,6 +5,7 @@
   import { renderMarkdown } from "./lib/markdown";
   import ToolCard from "./lib/ToolCard.svelte";
   import MemoryPanel from "./lib/MemoryPanel.svelte";
+  import DiffPane from "./lib/DiffPane.svelte";
   import { MalachiService } from "../bindings/github.com/ddombrow/malachi-desktop";
 
   const s = session;
@@ -17,6 +18,31 @@
   let jumping = false; // a smooth scroll to the bottom is under way
   let showLog = $state(false);
   let showMemory = $state(false);
+  // The diff pane stays open across launches; chats have no project to diff.
+  let showDiff = $state(localStorage.getItem("diffPane") === "open");
+  $effect(() => localStorage.setItem("diffPane", showDiff ? "open" : "closed"));
+  const diffShown = $derived(showDiff && s.open && !s.isChat);
+
+  // Diffs the user asked about from the diff pane, sent with the next message.
+  type Attachment = { label: string; content: string };
+  let attachments = $state<Attachment[]>([]);
+  const maxAskBytes = 64 << 10;
+
+  function askDiff(path: string, raw: string) {
+    if (raw.length > maxAskBytes) raw = raw.slice(0, raw.lastIndexOf("\n", maxAskBytes) + 1) + "… (diff cut short)\n";
+    // A fence longer than any run of backticks in the diff.
+    const fence = "`".repeat(Math.max(3, ...(raw.match(/`+/g) ?? []).map((m) => m.length + 1)));
+    const content = `The uncommitted changes to ${path}:\n\n${fence}diff\n${raw}${fence}\n`;
+    attachments = [...attachments.filter((a) => a.label !== path), { label: path, content }];
+    focusInput();
+  }
+
+  function onGlobalKey(e: KeyboardEvent) {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "g" && s.open && !s.isChat) {
+      e.preventDefault();
+      showDiff = !showDiff;
+    }
+  }
 
   onMount(async () => {
     await s.init();
@@ -118,16 +144,21 @@
         return true;
       }
       case "trust": await s.setTrust(arg === "no" ? "untrusted" : "trusted", false); return true;
+      case "diff": showDiff = !showDiff; return true;
     }
     return false;
   }
 
   async function submit(mode: "auto" | "followUp" = "auto") {
-    const text = input.trim();
-    if (!text) return;
+    let text = input.trim();
+    if (!text && !attachments.length) return;
     input = "";
     follow = true;
-    if (text.startsWith("/") && (await slash(text))) return;
+    if (!attachments.length && text.startsWith("/") && (await slash(text))) return;
+    if (attachments.length) {
+      text = [...attachments.map((a) => a.content), text].filter(Boolean).join("\n");
+      attachments = [];
+    }
     if (mode === "followUp") await s.followUpPrompt(text);
     else await s.prompt(text);
   }
@@ -203,7 +234,7 @@
   });
 </script>
 
-<svelte:window onclick={onClick} />
+<svelte:window onclick={onClick} onkeydown={onGlobalKey} />
 
 {#if !s.open && (s.starting || s.error)}
   <div class="welcome">
@@ -223,7 +254,7 @@
     </div>
   </div>
 {:else}
-  <div class="app">
+  <div class="app" class:diff={diffShown}>
     <aside class="side">
       <button class="place" class:active={s.isChat} disabled={s.running}
         onclick={() => !s.isChat && closeProject()} title="Talk with malachi without a project">
@@ -236,6 +267,14 @@
         <span class="place-name">Memory</span>
         <span class="badge" class:on={s.memoryEnabled}>{s.memoryEnabled ? "on" : "off"}</span>
       </button>
+      {#if !s.isChat}
+        <button class="place sub" class:open={showDiff} onclick={() => (showDiff = !showDiff)}
+          title="Uncommitted changes in this project (Ctrl+G)">
+          <span class="place-icon">±</span>
+          <span class="place-name">Changes</span>
+          <span class="badge">^G</span>
+        </button>
+      {/if}
 
       <div class="section">
         <span>Projects</span>
@@ -383,13 +422,23 @@
             {#each s.followUp as q}<span class="chip">next: {q}</span>{/each}
           </div>
         {/if}
+        {#if attachments.length}
+          <div class="attach">
+            {#each attachments as a (a.label)}
+              <span class="chip" title="This file's diff is sent with your message">
+                ± {a.label}
+                <button class="link" onclick={() => (attachments = attachments.filter((x) => x !== a))} aria-label="Remove">✕</button>
+              </span>
+            {/each}
+          </div>
+        {/if}
         <div class="box">
           <textarea bind:this={textarea} use:autosize bind:value={input} onkeydown={onKey} rows="1"
             placeholder={s.running ? "Steer, or Esc to stop" : "How can I help?"}></textarea>
           {#if s.running}
             <button class="stop" onclick={() => s.abort()} title="Stop (Esc)">■</button>
           {:else}
-            <button class="send" onclick={() => submit()} disabled={!input.trim()} title="Send (Enter)">↑</button>
+            <button class="send" onclick={() => submit()} disabled={!input.trim() && !attachments.length} title="Send (Enter)">↑</button>
           {/if}
         </div>
       </div>
@@ -437,5 +486,10 @@
         <pre class="log floating">{s.stderr.join("\n") || "(nothing on stderr)"}</pre>
       {/if}
     </main>
+    {#if diffShown}
+      <div class="diff-col">
+        <DiffPane onclose={() => (showDiff = false)} onask={askDiff} />
+      </div>
+    {/if}
   </div>
 {/if}

@@ -77,6 +77,9 @@ class Session {
   // transcript
   messages = $state<Message[]>([]);
   toolRuns = $state<Record<string, ToolRun>>({});
+  // Bumped whenever the agent may have changed files (a tool or run
+  // ended), so the diff pane knows to look again.
+  filesVersion = $state(0);
 
   // agent state
   running = $state(false);
@@ -397,6 +400,7 @@ class Session {
         break;
       case "agent_settled":
         this.running = false;
+        this.filesVersion++;
         this.refreshStats();
         this.refreshState().then(() => this.refreshSessions());
         break;
@@ -426,6 +430,7 @@ class Session {
           status: e.isError ? "error" : "done",
           details: e.result?.details,
         };
+        this.filesVersion++;
         if (/^mcp__memory__(remember|forget)$/.test(e.toolName ?? "")) this.memoryVersion++;
         break;
       case "queue_update":

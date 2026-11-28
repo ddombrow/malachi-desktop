@@ -29,11 +29,15 @@ malachiservice.go       runs malachi's RPC server in-process, lists sessions
 settings.go             the app's own model/thinking preferences
 platform.go             macOS login-shell PATH, app data directory
 memory.go               malachi-memory: --memory-mcp server mode, panel API
+diff.go                 the working tree's diff, for the diff pane
 frontend/src/App.svelte layout: sidebar, transcript, composer, status bar
 frontend/src/lib/
   session.svelte.ts     client-side session model fed by RPC events
   ToolCard.svelte       one tool call: summary, args, diff, output
   MemoryPanel.svelte    browse, search, add and forget memories
+  DiffPane.svelte       uncommitted changes beside the transcript
+  patch.ts              unified patch → files, hunks, numbered lines, changed words
+  highlight.ts          highlight.js, loaded lazily, one chunk per language
   markdown.ts           marked + DOMPurify (model output is untrusted)
 ```
 
@@ -93,11 +97,31 @@ longer exist are left out.
   queues a follow-up, **Esc** or ■ stops it.
 - Slash commands: `/new`, `/compact [note]`, `/model [provider/]id`,
   `/thinking level`, `/network on|off`, `/allow-read dir`, `/allow-write dir`,
-  `/trust yes|no`.
+  `/trust yes|no`, `/diff`.
 - The sidebar lists this project's saved sessions (click to switch),
   background jobs and MCP servers. The status bar holds the model and
   thinking pickers, the sandbox network toggle, the context meter, and
   malachi's stderr log.
+
+## Changes
+
+**± Changes** in a project's sidebar, **Ctrl+G** or `/diff` opens a pane
+beside the transcript (over it in a narrow window) showing what changed in
+the project's repository since its last commit: staged, unstaged and
+untracked files, as malachi's TUI diff pane does. A summary of the files
+comes first, then each file's diff with line numbers, syntax highlighting
+and the changed words marked. **Ask** attaches that file's diff to your next message. The pane
+refreshes after every tool call and run, and remembers whether it was open.
+
+The diff comes from malachi's `Session.WorkingTreeDiff`, which runs git as
+its git tool does: sandboxed and read-only. The RPC protocol has no command
+for it, so `diff.go` calls it on the session the in-process server is
+driving.
+
+Highlighting is highlight.js's core, loaded the first time the pane
+highlights a file, and each language a separate chunk loaded the first
+time a file in it is shown; only the languages listed in `highlight.ts`
+are built. Files over 4,000 lines or 300 KB are shown plain.
 
 ## Memory
 

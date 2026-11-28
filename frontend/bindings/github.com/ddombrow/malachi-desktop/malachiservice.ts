@@ -131,3 +131,14 @@ export function Send(cmd: { [_ in string]?: any } | null): $CancellablePromise<j
 export function UpdateSettings(patch: $models.Settings): $CancellablePromise<$models.Settings> {
     return $Call.ByID(2640313100, patch);
 }
+
+/**
+ * WorkingTreeDiff diffs the open project's working tree against HEAD.
+ * The RPC protocol has no command for it, so this asks the session the
+ * server is driving now (new_session and switch_session replace it)
+ * directly; malachi runs git as its git tool does, sandboxed and
+ * read-only, so no rule is bypassed.
+ */
+export function WorkingTreeDiff(): $CancellablePromise<$models.WorkingDiff> {
+    return $Call.ByID(760448932);
+}

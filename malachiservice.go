@@ -52,6 +52,7 @@ type MalachiService struct {
 // rpcProc is one running session server.
 type rpcProc struct {
 	in      *io.PipeWriter // commands, one JSON object per line
+	sv      *rpc.Server    // for what the protocol does not carry (diff.go)
 	cancel  context.CancelFunc
 	cwd     string
 	wmu     sync.Mutex
@@ -192,7 +193,8 @@ func (m *MalachiService) Open(opts OpenOptions) error {
 	inR, inW := io.Pipe()
 	outR, outW := io.Pipe()
 	ctx, cancel := context.WithCancel(context.Background())
-	p := &rpcProc{in: inW, cancel: cancel, cwd: cwd, pending: map[string]chan rpcResponse{}, done: make(chan struct{})}
+	sv := rpc.New(s, inR, outW)
+	p := &rpcProc{in: inW, sv: sv, cancel: cancel, cwd: cwd, pending: map[string]chan rpcResponse{}, done: make(chan struct{})}
 	m.mu.Lock()
 	m.proc = p
 	m.mu.Unlock()
@@ -209,7 +211,6 @@ func (m *MalachiService) Open(opts OpenOptions) error {
 			_ = outW.Close()
 			served <- reason
 		}()
-		sv := rpc.New(s, inR, outW)
 		err := sv.Run(ctx)
 		// new_session and switch_session replace the session; close the
 		// last one as well as the first.

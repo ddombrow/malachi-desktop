@@ -14,5 +14,6 @@ export type {
     RecentProject,
     SessionInfo,
     Settings,
-    TopicCount
+    TopicCount,
+    WorkingDiff
 } from "./models.js";

@@ -138,3 +138,31 @@ export interface TopicCount {
     "name": string;
     "count": string;
 }
+
+/**
+ * WorkingDiff is what changed in the open project's repository since its
+ * last commit, for the diff pane: malachi's coding.WorkingTreeDiff.
+ */
+export interface WorkingDiff {
+    /**
+     * Patch is a git-style unified patch: tracked files' changes, staged or
+     * not, then untracked files as new ones.
+     */
+    "patch": string;
+
+    /**
+     * Truncated says the patch was cut short to stay within malachi's cap.
+     */
+    "truncated": boolean;
+
+    /**
+     * NoRepo says the project is not in a git repository, or there is no
+     * git: there is nothing to diff, and that is not an error.
+     */
+    "noRepo": boolean;
+
+    /**
+     * Untracked are the paths in Patch that git does not track yet.
+     */
+    "untracked": string[] | null;
+}
